@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>ヘルスレコード</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --card: rgba(255, 255, 255, 0.92);
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: rgba(229, 231, 235, 0.9);
+      --accent: #2563eb;
+      --accent-2: #1d4ed8;
+      --ok: #059669;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans",
+        "Noto Sans JP", "Yu Gothic UI", sans-serif;
+      color: var(--text);
+      line-height: 1.4;
+
+      /* 背景（同フォルダにbg.jpg） */
+      background-image:
+        linear-gradient(rgba(247,248,251,0.76), rgba(247,248,251,0.76)),
+        url("./bg.jpg");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      background-color: var(--bg);
+    }
+
+    .wrap { max-width: 780px; margin: 16px auto; padding: 12px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      margin-bottom: 12px;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+    }
+    h1 { margin: 0 0 8px; font-size: 1.15rem; }
+    .sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
+    .grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 700px) { .grid { grid-template-columns: 1fr 1fr; } }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    label { font-size: 0.9rem; font-weight: 600; }
+    input, select, textarea, button {
+      width: 100%;
+      font: inherit;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--text);
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid rgba(37,99,235,.2);
+      border-color: var(--accent);
+    }
+    textarea { min-height: 120px; resize: vertical; white-space: pre-wrap; }
+    .hint { color: var(--muted); font-size: .82rem; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .chip {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.9);
+      font-size: .9rem;
+      font-weight: 600;
+    }
+    .btns { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+    @media (min-width: 700px) { .btns { grid-template-columns: 1fr 1fr 1fr; } }
+    button { cursor: pointer; font-weight: 700; transition: .12s ease; }
+    button:hover { transform: translateY(-1px); }
+    .primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .primary:hover { background: var(--accent-2); }
+
+    .menuHeader {
+      display: flex; justify-content: space-between; align-items: center;
+      gap: 8px; flex-wrap: wrap; margin-bottom: 8px;
+    }
+    .miniBtns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .miniBtns button { width: auto; padding: 8px 10px; font-size: .9rem; }
+
+    .menuList {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px;
+      background: rgba(250, 250, 250, 0.88);
+    }
+    .menuItem {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 8px;
+      align-items: start;
+      padding: 8px;
+      border-radius: 10px;
+    }
+    .menuItem + .menuItem { border-top: 1px dashed rgba(229, 231, 235, 0.9); }
+    .menuItem input[type="checkbox"] { width: 18px; height: 18px; margin-top: 3px; padding: 0; }
+    .menuItemText { white-space: pre-wrap; font-size: 0.95rem; }
+    .small { font-size: .82rem; color: var(--muted); }
+    .statusOk { color: var(--ok); }
+    .outputBox textarea { min-height: 220px; }
+
+    @media (max-width: 768px) { body { background-attachment: scroll; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>ヘルスレコード</h1>
+      <div class="sub">曜日メニューをチェックして、文生成→コピー。</div>
+      <div class="row">
+        <span class="small">記録日</span>
+        <span class="chip" id="todayLabel">----/--/--</span>
+        <span class="chip" id="weekdayLabel">-</span>
+        <button type="button" id="refreshDateBtn" style="width:auto;padding:8px 12px;">日付更新</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div class="field">
+          <label for="weight">体重（例: 75.20）</label>
+          <input id="weight" inputmode="decimal" maxlength="5" placeholder="75.20" data-next="bmi" data-autonext="5" />
+          <div class="hint">5文字で次へ</div>
+        </div>
+
+        <div class="field">
+          <label for="bmi">BMI（例: 27.3）</label>
+          <input id="bmi" inputmode="decimal" maxlength="4" placeholder="27.3" data-next="bodyFat" data-autonext="4" />
+          <div class="hint">4文字で次へ</div>
+        </div>
+
+        <div class="field">
+          <label for="bodyFat">体脂肪率（例: 23.80）</label>
+          <input id="bodyFat" inputmode="decimal" maxlength="5" placeholder="23.80" data-next="muscle" data-autonext="5" />
+          <div class="hint">5文字で次へ</div>
+        </div>
+
+        <div class="field">
+          <label for="muscle">筋肉量（例: 54.30）</label>
+          <input id="muscle" inputmode="decimal" maxlength="5" placeholder="54.30" data-next="steps" data-autonext="5" />
+          <div class="hint">5文字で次へ</div>
+        </div>
+
+        <div class="field">
+          <label for="steps">歩数（例: 10436）</label>
+          <input id="steps" inputmode="numeric" maxlength="6" placeholder="10436" data-next="eventText" data-autonext="5" />
+          <div class="hint">5文字以上で次へ（最大6文字）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="menuHeader">
+        <div>
+          <strong>今日の運動メニュー</strong>
+          <div class="small" id="menuCaption">曜日に応じて表示</div>
+        </div>
+        <div class="miniBtns">
+          <button type="button" id="checkAllBtn">全部チェック</button>
+          <button type="button" id="uncheckAllBtn">全部解除</button>
+          <button type="button" id="markRestBtn">今日は運動なし</button>
+        </div>
+      </div>
+
+      <div id="menuList" class="menuList"></div>
+
+      <div class="field" style="margin-top:10px;">
+        <label for="exerciseExtra">運動追記（任意）</label>
+        <textarea id="exerciseExtra" placeholder="例：軽めで実施、1セット減らした など"></textarea>
+        <div class="hint">曜日メニューにない運動や補足を書きたい時に使う</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label for="eventText">イベント（任意）</label>
+        <textarea id="eventText" placeholder="例：ポップアップ、外食、残業、体調メモなど"></textarea>
+      </div>
+
+      <div class="btns">
+        <button type="button" class="primary" id="generateBtn">文を生成</button>
+        <button type="button" id="copyBtn">コピー</button>
+        <button type="button" id="clearBtn">入力クリア</button>
+      </div>
+    </div>
+
+    <div class="card outputBox">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <strong>生成結果</strong>
+          <div class="small">ChatGPTに貼る用</div>
+        </div>
+        <div id="copyStatus" class="small"></div>
+      </div>
+      <textarea id="output" readonly placeholder="ここに生成される"></textarea>
+    </div>
+  </div>
+
+  <script>
+    // ===== Service Worker 登録（PWAの要）=====
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", async () => {
+        try {
+          await navigator.serviceWorker.register("./sw.js");
+        } catch (e) {
+          // 失敗してもアプリ自体は動く
+          console.warn("SW register failed:", e);
+        }
+      });
+    }
+
+    // ===== 曜日ごとのメニュー定義 =====
+    const WEEK_MENU = {
+      1: [
+        "KBデッドバグ（8kg）：左8回＋右8回 ×3",
+        "KBハロー（8kg）：左回し8回＋右回し8回 ×2",
+        "KBスーツケースホールド（8kg）：左持ち30秒＋右持ち30秒 ×2",
+        "アームバー：バストアップ1（順手・上向き）20回 ×2",
+        "アームバー：シングル・ローイング（左右）左20回＋右20回 ×2"
+      ],
+      2: [
+        "KBスイング（軽）（8kg）：15回×3"
+      ],
+      3: [
+        "KBデッドバグ（軽め）（8kg）：左6回＋右6回 ×2",
+        "KBロシアンツイスト（8kg）：左16回＋右16回 ×2",
+        "アームバー：バストアップ2（胸前・逆手・下向き）20回 ×2"
+      ],
+      4: [
+        "アームバー：シングルプルダウン（左右）左20回＋右20回 ×1",
+        "KBデッドリフト（8kg）：10回 ×2"
+      ],
+      5: [
+        "KBデッドバグ（8kg）：左8回＋右8回 ×3",
+        "KBハロー（8kg）：左10回＋右10回 ×2",
+        "KBスーツケース足踏み（8kg）：左20歩＋右20歩 ×2",
+        "KBスイング（短・濃）（8kg）：20回×2",
+        "アームバー：バストアップ3（腹前・逆手・下向き）20回 ×2",
+        "アームバー：トライセプス（尻の前・下向き）20回 ×2"
+      ],
+      6: [
+        "KBスイング（8kg）15回×2"
+      ],
+      0: [
+        "運動なし"
+      ]
+    };
+
+    const WEEKDAY_JP = ["日", "月", "火", "水", "木", "金", "土"];
+
+    const todayLabel = document.getElementById("todayLabel");
+    const weekdayLabel = document.getElementById("weekdayLabel");
+    const menuList = document.getElementById("menuList");
+    const menuCaption = document.getElementById("menuCaption");
+    const copyStatus = document.getElementById("copyStatus");
+    const output = document.getElementById("output");
+
+    let currentDate = new Date();
+    window.__manualRestMode = false;
+
+    function formatDateYYYYMMDD(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}/${m}/${d}`;
+    }
+
+    function refreshDateUI() {
+      currentDate = new Date();
+      todayLabel.textContent = formatDateYYYYMMDD(currentDate);
+      weekdayLabel.textContent = `【${WEEKDAY_JP[currentDate.getDay()]}】`;
+      renderMenuForToday();
+    }
+    document.getElementById("refreshDateBtn").addEventListener("click", refreshDateUI);
+
+    function renderMenuForToday() {
+      const day = currentDate.getDay();
+      const items = WEEK_MENU[day] || [];
+      menuList.innerHTML = "";
+      if (!items.length) {
+        menuList.innerHTML = `<div class="small">メニューなし</div>`;
+        menuCaption.textContent = "メニューなし";
+        return;
+      }
+      menuCaption.textContent = `今日は【${WEEKDAY_JP[day]}】メニュー（${items.length}件）`;
+
+      items.forEach((text) => {
+        const row = document.createElement("label");
+        row.className = "menuItem";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.className = "exercise-check";
+        cb.dataset.value = text;
+        if (text === "運動なし") cb.checked = true;
+
+        const span = document.createElement("div");
+        span.className = "menuItemText";
+        span.textContent = text;
+
+        row.appendChild(cb);
+        row.appendChild(span);
+        menuList.appendChild(row);
+      });
+    }
+
+    function getMenuChecks() {
+      return Array.from(document.querySelectorAll(".exercise-check"));
+    }
+
+    document.getElementById("checkAllBtn").addEventListener("click", () => {
+      getMenuChecks().forEach(cb => cb.checked = true);
+      window.__manualRestMode = false;
+    });
+
+    document.getElementById("uncheckAllBtn").addEventListener("click", () => {
+      getMenuChecks().forEach(cb => cb.checked = false);
+      window.__manualRestMode = false;
+    });
+
+    document.getElementById("markRestBtn").addEventListener("click", () => {
+      const checks = getMenuChecks();
+      checks.forEach(cb => cb.checked = (cb.dataset.value === "運動なし"));
+      const hasRest = checks.some(cb => cb.dataset.value === "運動なし");
+      window.__manualRestMode = !hasRest;
+    });
+
+    menuList.addEventListener("change", () => { window.__manualRestMode = false; });
+
+    function attachAutoNext(inputEl) {
+      inputEl.addEventListener("input", () => {
+        let value = inputEl.value;
+
+        if (["weight", "bmi", "bodyFat", "muscle"].includes(inputEl.id)) {
+          value = value.replace(/[^\d.]/g, "");
+          const parts = value.split(".");
+          if (parts.length > 2) value = parts[0] + "." + parts.slice(1).join("");
+          inputEl.value = value;
+        }
+        if (inputEl.id === "steps") {
+          value = value.replace(/[^\d]/g, "");
+          inputEl.value = value;
+        }
+
+        const need = Number(inputEl.dataset.autonext || 0);
+        const nextId = inputEl.dataset.next;
+        if (!need || !nextId) return;
+
+        if (inputEl.id === "steps") {
+          if (value.length >= 5) document.getElementById(nextId)?.focus();
+          return;
+        }
+        if (value.length >= need) document.getElementById(nextId)?.focus();
+      });
+    }
+    ["weight", "bmi", "bodyFat", "muscle", "steps"].forEach(id => attachAutoNext(document.getElementById(id)));
+
+    function buildText() {
+      const date = todayLabel.textContent.trim();
+      const weight = document.getElementById("weight").value.trim();
+      const bmi = document.getElementById("bmi").value.trim();
+      const bodyFat = document.getElementById("bodyFat").value.trim();
+      const muscle = document.getElementById("muscle").value.trim();
+      const steps = document.getElementById("steps").value.trim();
+      const eventText = document.getElementById("eventText").value.trim();
+      const exerciseExtra = document.getElementById("exerciseExtra").value.trim();
+
+      const selectedExercises = getMenuChecks().filter(cb => cb.checked).map(cb => cb.dataset.value);
+
+      const lines = [];
+      lines.push(date);
+      lines.push(weight || "");
+      lines.push(bmi || "");
+      lines.push(bodyFat || "");
+      lines.push(muscle || "");
+      lines.push(steps || "");
+
+      const exerciseLines = [];
+      if (window.__manualRestMode) exerciseLines.push("運動なし");
+      else exerciseLines.push(...selectedExercises);
+
+      if (exerciseExtra) {
+        const extras = exerciseExtra.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        exerciseLines.push(...extras);
+      }
+      if (exerciseLines.length) lines.push(...exerciseLines);
+
+      if (eventText) {
+        lines.push("");
+        lines.push(`イベント：${eventText}`);
+      }
+      return lines.join("\n");
+    }
+
+    document.getElementById("generateBtn").addEventListener("click", () => {
+      output.value = buildText();
+      copyStatus.textContent = "文を生成したよ";
+      copyStatus.className = "small statusOk";
+    });
+
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      if (!output.value.trim()) output.value = buildText();
+      try {
+        await navigator.clipboard.writeText(output.value);
+        copyStatus.textContent = "コピー完了";
+        copyStatus.className = "small statusOk";
+      } catch {
+        output.focus(); output.select();
+        const ok = document.execCommand("copy");
+        copyStatus.textContent = ok ? "コピー完了（互換モード）" : "コピー失敗";
+        copyStatus.className = "small";
+      }
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      ["weight","bmi","bodyFat","muscle","steps","eventText","exerciseExtra","output"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      copyStatus.textContent = "入力をクリアしたよ";
+      copyStatus.className = "small";
+      window.__manualRestMode = false;
+      renderMenuForToday();
+      document.getElementById("weight").focus();
+    });
+
+    window.addEventListener("load", () => {
+      refreshDateUI();
+      document.getElementById("weight").focus();
+    });
+  </script>
+</body>
+</html>

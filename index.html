@@ -143,476 +143,476 @@
 </head>
 
 <body>
-<div class="wrap">
-  <div class="card">
-    <h1>ヘルスレコード</h1>
-    <div class="sub">曜日メニューをチェック→文生成→コピー。メニューは編集して保存できる。</div>
-    <div class="row">
-      <span class="small">記録日</span>
-      <span class="chip" id="todayLabel">----/--/--</span>
-      <span class="chip" id="weekdayLabel">-</span>
-      <button type="button" id="refreshDateBtn" style="width:auto;padding:8px 12px;">日付更新</button>
+  <div class="wrap">
+    <div class="card">
+      <h1>ヘルスレコード</h1>
+      <div class="sub">曜日メニューをチェック→文生成→コピー。メニューは編集して保存できる。</div>
+      <div class="row">
+        <span class="small">記録日</span>
+        <span class="chip" id="todayLabel">----/--/--</span>
+        <span class="chip" id="weekdayLabel">-</span>
+        <button type="button" id="refreshDateBtn" style="width:auto;padding:8px 12px;">日付更新</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div class="field">
+          <label for="weight">体重（例: 75.20）</label>
+          <input id="weight" inputmode="decimal" maxlength="5" placeholder="75.20" data-next="bmi" data-autonext="5" />
+          <div class="hint">5文字で次へ</div>
+        </div>
+
+        <div class="field">
+          <label for="bmi">BMI（例: 27.3）</label>
+          <input id="bmi" inputmode="decimal" maxlength="4" placeholder="27.3" data-next="bodyFat" data-autonext="4" />
+          <div class="hint">4文字で次へ</div>
+        </div>
+
+        <div class="field">
+          <label for="bodyFat">体脂肪率（例: 23.80）</label>
+          <input id="bodyFat" inputmode="decimal" maxlength="5" placeholder="23.80" data-next="muscle" data-autonext="5" />
+          <div class="hint">5文字で次へ</div>
+        </div>
+
+        <div class="field">
+          <label for="muscle">筋肉量（例: 54.30）</label>
+          <input id="muscle" inputmode="decimal" maxlength="5" placeholder="54.30" data-next="steps" data-autonext="5" />
+          <div class="hint">5文字で次へ</div>
+        </div>
+
+        <div class="field">
+          <label for="steps">歩数（例: 10436）</label>
+          <input id="steps" inputmode="numeric" maxlength="6" placeholder="10436" data-next="eventText" data-autonext="5" />
+          <div class="hint">5文字以上で次へ（最大6文字）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="menuHeader">
+        <div>
+          <strong>今日の運動メニュー</strong>
+          <div class="small" id="menuCaption">曜日に応じて表示</div>
+        </div>
+        <div class="miniBtns">
+          <button type="button" id="checkAllBtn">全部チェック</button>
+          <button type="button" id="uncheckAllBtn">全部解除</button>
+          <button type="button" id="markRestBtn">今日は運動なし</button>
+        </div>
+      </div>
+
+      <!-- ▼ メニュー編集UI -->
+      <div class="menuHeader" style="margin-top:10px;">
+        <div>
+          <strong>メニュー編集</strong>
+          <div class="small">曜日ごとの運動を変更 → 保存</div>
+        </div>
+        <div class="miniBtns">
+          <button type="button" id="toggleEditorBtn">編集を開く</button>
+          <button type="button" id="saveMenuBtn">保存</button>
+          <button type="button" id="resetMenuBtn">初期に戻す</button>
+        </div>
+      </div>
+
+      <div id="menuEditor" class="menuList" style="display:none; margin-bottom:10px;">
+        <div class="field" style="margin-bottom:8px;">
+          <label for="editDaySelect">曜日</label>
+          <select id="editDaySelect">
+            <option value="1">月</option>
+            <option value="2">火</option>
+            <option value="3">水</option>
+            <option value="4">木</option>
+            <option value="5">金</option>
+            <option value="6">土</option>
+            <option value="0">日</option>
+          </select>
+          <div class="hint">「1行＝1メニュー」。空行は無視。</div>
+        </div>
+
+        <div class="field">
+          <label for="editMenuTextarea">メニュー内容</label>
+          <textarea id="editMenuTextarea" placeholder="例：KBスイング（8kg）15回×2"></textarea>
+        </div>
+      </div>
+      <!-- ▲ メニュー編集UI -->
+
+      <!-- 今日のチェック一覧 -->
+      <div id="menuList" class="menuList"></div>
+
+      <div class="field" style="margin-top:10px;">
+        <label for="exerciseExtra">運動追記（任意）</label>
+        <textarea id="exerciseExtra" placeholder="例：軽めで実施、1セット減らした など"></textarea>
+        <div class="hint">曜日メニューにない運動や補足を書きたい時に使う</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="field">
+        <label for="eventText">イベント（任意）</label>
+        <textarea id="eventText" placeholder="例：ポップアップ、外食、残業、体調メモなど"></textarea>
+      </div>
+
+      <div class="btns">
+        <button type="button" class="primary" id="generateBtn">文を生成</button>
+        <button type="button" id="copyBtn">コピー</button>
+        <button type="button" id="clearBtn">入力クリア</button>
+      </div>
+    </div>
+
+    <div class="card outputBox">
+      <div class="row" style="justify-content:space-between;">
+        <div>
+          <strong>生成結果</strong>
+          <div class="small">ChatGPTに貼る用</div>
+        </div>
+        <div id="copyStatus" class="small"></div>
+      </div>
+      <textarea id="output" readonly placeholder="ここに生成される"></textarea>
     </div>
   </div>
 
-  <div class="card">
-    <div class="grid">
-      <div class="field">
-        <label for="weight">体重（例: 75.20）</label>
-        <input id="weight" inputmode="decimal" maxlength="5" placeholder="75.20" data-next="bmi" data-autonext="5" />
-        <div class="hint">5文字で次へ</div>
-      </div>
-
-      <div class="field">
-        <label for="bmi">BMI（例: 27.3）</label>
-        <input id="bmi" inputmode="decimal" maxlength="4" placeholder="27.3" data-next="bodyFat" data-autonext="4" />
-        <div class="hint">4文字で次へ</div>
-      </div>
-
-      <div class="field">
-        <label for="bodyFat">体脂肪率（例: 23.80）</label>
-        <input id="bodyFat" inputmode="decimal" maxlength="5" placeholder="23.80" data-next="muscle" data-autonext="5" />
-        <div class="hint">5文字で次へ</div>
-      </div>
-
-      <div class="field">
-        <label for="muscle">筋肉量（例: 54.30）</label>
-        <input id="muscle" inputmode="decimal" maxlength="5" placeholder="54.30" data-next="steps" data-autonext="5" />
-        <div class="hint">5文字で次へ</div>
-      </div>
-
-      <div class="field">
-        <label for="steps">歩数（例: 10436）</label>
-        <input id="steps" inputmode="numeric" maxlength="6" placeholder="10436" data-next="eventText" data-autonext="5" />
-        <div class="hint">5文字以上で次へ（最大6文字）</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="menuHeader">
-      <div>
-        <strong>今日の運動メニュー</strong>
-        <div class="small" id="menuCaption">曜日に応じて表示</div>
-      </div>
-      <div class="miniBtns">
-        <button type="button" id="checkAllBtn">全部チェック</button>
-        <button type="button" id="uncheckAllBtn">全部解除</button>
-        <button type="button" id="markRestBtn">今日は運動なし</button>
-      </div>
-    </div>
-
-    <!-- ▼ メニュー編集UI -->
-    <div class="menuHeader" style="margin-top:10px;">
-      <div>
-        <strong>メニュー編集</strong>
-        <div class="small">曜日ごとの運動を変更 → 保存</div>
-      </div>
-      <div class="miniBtns">
-        <button type="button" id="toggleEditorBtn">編集を開く</button>
-        <button type="button" id="saveMenuBtn">保存</button>
-        <button type="button" id="resetMenuBtn">初期に戻す</button>
-      </div>
-    </div>
-
-    <div id="menuEditor" class="menuList" style="display:none; margin-bottom:10px;">
-      <div class="field" style="margin-bottom:8px;">
-        <label for="editDaySelect">曜日</label>
-        <select id="editDaySelect">
-          <option value="1">月</option>
-          <option value="2">火</option>
-          <option value="3">水</option>
-          <option value="4">木</option>
-          <option value="5">金</option>
-          <option value="6">土</option>
-          <option value="0">日</option>
-        </select>
-        <div class="hint">「1行＝1メニュー」。空行は無視。</div>
-      </div>
-
-      <div class="field">
-        <label for="editMenuTextarea">メニュー内容</label>
-        <textarea id="editMenuTextarea" placeholder="例：KBスイング（8kg）15回×2"></textarea>
-      </div>
-    </div>
-    <!-- ▲ メニュー編集UI -->
-
-    <!-- 今日のチェック一覧 -->
-    <div id="menuList" class="menuList"></div>
-
-    <div class="field" style="margin-top:10px;">
-      <label for="exerciseExtra">運動追記（任意）</label>
-      <textarea id="exerciseExtra" placeholder="例：軽めで実施、1セット減らした など"></textarea>
-      <div class="hint">曜日メニューにない運動や補足を書きたい時に使う</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="field">
-      <label for="eventText">イベント（任意）</label>
-      <textarea id="eventText" placeholder="例：ポップアップ、外食、残業、体調メモなど"></textarea>
-    </div>
-
-    <div class="btns">
-      <button type="button" class="primary" id="generateBtn">文を生成</button>
-      <button type="button" id="copyBtn">コピー</button>
-      <button type="button" id="clearBtn">入力クリア</button>
-    </div>
-  </div>
-
-  <div class="card outputBox">
-    <div class="row" style="justify-content:space-between;">
-      <div>
-        <strong>生成結果</strong>
-        <div class="small">ChatGPTに貼る用</div>
-      </div>
-      <div id="copyStatus" class="small"></div>
-    </div>
-    <textarea id="output" readonly placeholder="ここに生成される"></textarea>
-  </div>
-</div>
-
-<script>
-  // ===== Service Worker 登録（失敗してもOK）=====
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", async () => {
-      try { await navigator.serviceWorker.register("./sw.js"); }
-      catch (e) { console.warn("SW register failed:", e); }
-    });
-  }
-
-  // ===== 初期メニュー（デフォルト）=====
-  const DEFAULT_WEEK_MENU = {
-    1: [
-      "KBデッドバグ（8kg）：左8回＋右8回 ×3",
-      "KBハロー（8kg）：左回し8回＋右回し8回 ×2",
-      "KBスーツケースホールド（8kg）：左持ち30秒＋右持ち30秒 ×2",
-      "アームバー：バストアップ1（順手・上向き）20回 ×2",
-      "アームバー：シングル・ローイング（左右）左20回＋右20回 ×2"
-    ],
-    2: [
-      "KBスイング（軽）（8kg）：15回×3"
-    ],
-    3: [
-      "KBデッドバグ（軽め）（8kg）：左6回＋右6回 ×2",
-      "KBロシアンツイスト（8kg）：左16回＋右16回 ×2",
-      "アームバー：バストアップ2（胸前・逆手・下向き）20回 ×2"
-    ],
-    4: [
-      "アームバー：シングルプルダウン（左右）左20回＋右20回 ×1",
-      "KBデッドリフト（8kg）：10回 ×2"
-    ],
-    5: [
-      "KBデッドバグ（8kg）：左8回＋右8回 ×3",
-      "KBハロー（8kg）：左10回＋右10回 ×2",
-      "KBスーツケース足踏み（8kg）：左20歩＋右20歩 ×2",
-      "KBスイング（短・濃）（8kg）：20回×2",
-      "アームバー：バストアップ3（腹前・逆手・下向き）20回 ×2",
-      "アームバー：トライセプス（尻の前・下向き）20回 ×2"
-    ],
-    6: [
-      "KBスイング（8kg）15回×2"
-    ],
-    0: [
-      "運動なし"
-    ]
-  };
-
-  const WEEKDAY_JP = ["日", "月", "火", "水", "木", "金", "土"];
-
-  // ===== メニュー保存（localStorage）=====
-  const MENU_STORAGE_KEY = "health_week_menu_v1";
-
-  function deepClone(obj) {
-    return JSON.parse(JSON.stringify(obj));
-  }
-
-  function loadWeekMenu() {
-    try {
-      const raw = localStorage.getItem(MENU_STORAGE_KEY);
-      if (!raw) return deepClone(DEFAULT_WEEK_MENU);
-      const parsed = JSON.parse(raw);
-
-      // 0-6が配列かチェック
-      const ok = [0,1,2,3,4,5,6].every(d => Array.isArray(parsed[d]));
-      if (!ok) return deepClone(DEFAULT_WEEK_MENU);
-      return parsed;
-    } catch {
-      return deepClone(DEFAULT_WEEK_MENU);
-    }
-  }
-
-  function saveWeekMenu(menuObj) {
-    localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menuObj));
-  }
-
-  let WEEK_MENU = loadWeekMenu();
-
-  // ===== DOM =====
-  const todayLabel = document.getElementById("todayLabel");
-  const weekdayLabel = document.getElementById("weekdayLabel");
-  const menuList = document.getElementById("menuList");
-  const menuCaption = document.getElementById("menuCaption");
-  const copyStatus = document.getElementById("copyStatus");
-  const output = document.getElementById("output");
-
-  // editor
-  const menuEditor = document.getElementById("menuEditor");
-  const toggleEditorBtn = document.getElementById("toggleEditorBtn");
-  const saveMenuBtn = document.getElementById("saveMenuBtn");
-  const resetMenuBtn = document.getElementById("resetMenuBtn");
-  const editDaySelect = document.getElementById("editDaySelect");
-  const editMenuTextarea = document.getElementById("editMenuTextarea");
-
-  let currentDate = new Date();
-  window.__manualRestMode = false;
-
-  // ===== 日付 =====
-  function formatDateYYYYMMDD(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}/${m}/${d}`;
-  }
-
-  function refreshDateUI() {
-    currentDate = new Date();
-    todayLabel.textContent = formatDateYYYYMMDD(currentDate);
-    weekdayLabel.textContent = `【${WEEKDAY_JP[currentDate.getDay()]}】`;
-    renderMenuForToday();
-  }
-  document.getElementById("refreshDateBtn").addEventListener("click", refreshDateUI);
-
-  // ===== チェック一覧描画 =====
-  function renderMenuForToday() {
-    const day = currentDate.getDay();
-    const items = WEEK_MENU[day] || [];
-    menuList.innerHTML = "";
-    window.__manualRestMode = false;
-
-    if (!items.length) {
-      menuList.innerHTML = `<div class="small">メニューなし</div>`;
-      menuCaption.textContent = "メニューなし";
-      return;
+  <script>
+    // ===== Service Worker 登録（失敗してもOK）=====
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", async () => {
+        try { await navigator.serviceWorker.register("./sw.js"); }
+        catch (e) { console.warn("SW register failed:", e); }
+      });
     }
 
-    menuCaption.textContent = `今日は【${WEEKDAY_JP[day]}】メニュー（${items.length}件）`;
+    // ===== 初期メニュー（デフォルト）=====
+    const DEFAULT_WEEK_MENU = {
+      1: [
+        "KBデッドバグ（8kg）：左8回＋右8回 ×3",
+        "KBハロー（8kg）：左回し8回＋右回し8回 ×2",
+        "KBスーツケースホールド（8kg）：左持ち30秒＋右持ち30秒 ×2",
+        "アームバー：バストアップ1（順手・上向き）20回 ×2",
+        "アームバー：シングル・ローイング（左右）左20回＋右20回 ×2"
+      ],
+      2: [
+        "KBスイング（軽）（8kg）：15回×3"
+      ],
+      3: [
+        "KBデッドバグ（軽め）（8kg）：左6回＋右6回 ×2",
+        "KBロシアンツイスト（8kg）：左16回＋右16回 ×2",
+        "アームバー：バストアップ2（胸前・逆手・下向き）20回 ×2"
+      ],
+      4: [
+        "アームバー：シングルプルダウン（左右）左20回＋右20回 ×1",
+        "KBデッドリフト（8kg）：10回 ×2"
+      ],
+      5: [
+        "KBデッドバグ（8kg）：左8回＋右8回 ×3",
+        "KBハロー（8kg）：左10回＋右10回 ×2",
+        "KBスーツケース足踏み（8kg）：左20歩＋右20歩 ×2",
+        "KBスイング（短・濃）（8kg）：20回×2",
+        "アームバー：バストアップ3（腹前・逆手・下向き）20回 ×2",
+        "アームバー：トライセプス（尻の前・下向き）20回 ×2"
+      ],
+      6: [
+        "KBスイング（8kg）15回×2"
+      ],
+      0: [
+        "運動なし"
+      ]
+    };
 
-    items.forEach((text) => {
-      const row = document.createElement("label");
-      row.className = "menuItem";
+    const WEEKDAY_JP = ["日", "月", "火", "水", "木", "金", "土"];
 
-      const cb = document.createElement("input");
-      cb.type = "checkbox";
-      cb.className = "exercise-check";
-      cb.dataset.value = text;
+    // ===== メニュー保存（localStorage）=====
+    const MENU_STORAGE_KEY = "health_week_menu_v1";
 
-      // 日曜の「運動なし」などが入ってる場合は初期ON
-      if (text === "運動なし") cb.checked = true;
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
 
-      const span = document.createElement("div");
-      span.className = "menuItemText";
-      span.textContent = text;
+    function loadWeekMenu() {
+      try {
+        const raw = localStorage.getItem(MENU_STORAGE_KEY);
+        if (!raw) return deepClone(DEFAULT_WEEK_MENU);
+        const parsed = JSON.parse(raw);
 
-      row.appendChild(cb);
-      row.appendChild(span);
-      menuList.appendChild(row);
-    });
-  }
-
-  function getMenuChecks() {
-    return Array.from(document.querySelectorAll(".exercise-check"));
-  }
-
-  // ===== チェック操作 =====
-  document.getElementById("checkAllBtn").addEventListener("click", () => {
-    getMenuChecks().forEach(cb => cb.checked = true);
-    window.__manualRestMode = false;
-  });
-
-  document.getElementById("uncheckAllBtn").addEventListener("click", () => {
-    getMenuChecks().forEach(cb => cb.checked = false);
-    window.__manualRestMode = false;
-  });
-
-  document.getElementById("markRestBtn").addEventListener("click", () => {
-    const checks = getMenuChecks();
-    checks.forEach(cb => cb.checked = (cb.dataset.value === "運動なし"));
-    const hasRest = checks.some(cb => cb.dataset.value === "運動なし");
-    window.__manualRestMode = !hasRest; // メニューに「運動なし」が無ければ手動休養として出力
-  });
-
-  menuList.addEventListener("change", () => {
-    window.__manualRestMode = false;
-  });
-
-  // ===== 入力：文字数で次へ =====
-  function attachAutoNext(inputEl) {
-    inputEl.addEventListener("input", () => {
-      let value = inputEl.value;
-
-      if (["weight", "bmi", "bodyFat", "muscle"].includes(inputEl.id)) {
-        value = value.replace(/[^\d.]/g, "");
-        const parts = value.split(".");
-        if (parts.length > 2) value = parts[0] + "." + parts.slice(1).join("");
-        inputEl.value = value;
+        // 0-6が配列かチェック
+        const ok = [0,1,2,3,4,5,6].every(d => Array.isArray(parsed[d]));
+        if (!ok) return deepClone(DEFAULT_WEEK_MENU);
+        return parsed;
+      } catch {
+        return deepClone(DEFAULT_WEEK_MENU);
       }
+    }
 
-      if (inputEl.id === "steps") {
-        value = value.replace(/[^\d]/g, "");
-        inputEl.value = value;
-      }
+    function saveWeekMenu(menuObj) {
+      localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menuObj));
+    }
 
-      const need = Number(inputEl.dataset.autonext || 0);
-      const nextId = inputEl.dataset.next;
-      if (!need || !nextId) return;
+    let WEEK_MENU = loadWeekMenu();
 
-      if (inputEl.id === "steps") {
-        if (value.length >= 5) document.getElementById(nextId)?.focus();
+    // ===== DOM =====
+    const todayLabel = document.getElementById("todayLabel");
+    const weekdayLabel = document.getElementById("weekdayLabel");
+    const menuList = document.getElementById("menuList");
+    const menuCaption = document.getElementById("menuCaption");
+    const copyStatus = document.getElementById("copyStatus");
+    const output = document.getElementById("output");
+
+    // editor
+    const menuEditor = document.getElementById("menuEditor");
+    const toggleEditorBtn = document.getElementById("toggleEditorBtn");
+    const saveMenuBtn = document.getElementById("saveMenuBtn");
+    const resetMenuBtn = document.getElementById("resetMenuBtn");
+    const editDaySelect = document.getElementById("editDaySelect");
+    const editMenuTextarea = document.getElementById("editMenuTextarea");
+
+    let currentDate = new Date();
+    window.__manualRestMode = false;
+
+    // ===== 日付 =====
+    function formatDateYYYYMMDD(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}/${m}/${d}`;
+    }
+
+    function refreshDateUI() {
+      currentDate = new Date();
+      todayLabel.textContent = formatDateYYYYMMDD(currentDate);
+      weekdayLabel.textContent = `【${WEEKDAY_JP[currentDate.getDay()]}】`;
+      renderMenuForToday();
+    }
+    document.getElementById("refreshDateBtn").addEventListener("click", refreshDateUI);
+
+    // ===== チェック一覧描画 =====
+    function renderMenuForToday() {
+      const day = currentDate.getDay();
+      const items = WEEK_MENU[day] || [];
+      menuList.innerHTML = "";
+      window.__manualRestMode = false;
+
+      if (!items.length) {
+        menuList.innerHTML = `<div class="small">メニューなし</div>`;
+        menuCaption.textContent = "メニューなし";
         return;
       }
 
-      if (value.length >= need) document.getElementById(nextId)?.focus();
+      menuCaption.textContent = `今日は【${WEEKDAY_JP[day]}】メニュー（${items.length}件）`;
+
+      items.forEach((text) => {
+        const row = document.createElement("label");
+        row.className = "menuItem";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.className = "exercise-check";
+        cb.dataset.value = text;
+
+        // 日曜の「運動なし」などが入ってる場合は初期ON
+        if (text === "運動なし") cb.checked = true;
+
+        const span = document.createElement("div");
+        span.className = "menuItemText";
+        span.textContent = text;
+
+        row.appendChild(cb);
+        row.appendChild(span);
+        menuList.appendChild(row);
+      });
+    }
+
+    function getMenuChecks() {
+      return Array.from(document.querySelectorAll(".exercise-check"));
+    }
+
+    // ===== チェック操作 =====
+    document.getElementById("checkAllBtn").addEventListener("click", () => {
+      getMenuChecks().forEach(cb => cb.checked = true);
+      window.__manualRestMode = false;
     });
-  }
 
-  ["weight", "bmi", "bodyFat", "muscle", "steps"].forEach(id => {
-    attachAutoNext(document.getElementById(id));
-  });
+    document.getElementById("uncheckAllBtn").addEventListener("click", () => {
+      getMenuChecks().forEach(cb => cb.checked = false);
+      window.__manualRestMode = false;
+    });
 
-  // ===== 文生成 =====
-  function buildText() {
-    const date = todayLabel.textContent.trim();
-    const weight = document.getElementById("weight").value.trim();
-    const bmi = document.getElementById("bmi").value.trim();
-    const bodyFat = document.getElementById("bodyFat").value.trim();
-    const muscle = document.getElementById("muscle").value.trim();
-    const steps = document.getElementById("steps").value.trim();
-    const eventText = document.getElementById("eventText").value.trim();
-    const exerciseExtra = document.getElementById("exerciseExtra").value.trim();
+    document.getElementById("markRestBtn").addEventListener("click", () => {
+      const checks = getMenuChecks();
+      checks.forEach(cb => cb.checked = (cb.dataset.value === "運動なし"));
+      const hasRest = checks.some(cb => cb.dataset.value === "運動なし");
+      window.__manualRestMode = !hasRest; // メニューに「運動なし」が無ければ手動休養として出力
+    });
 
-    const selectedExercises = getMenuChecks()
-      .filter(cb => cb.checked)
-      .map(cb => cb.dataset.value);
+    menuList.addEventListener("change", () => {
+      window.__manualRestMode = false;
+    });
 
-    const lines = [];
-    lines.push(date);
-    lines.push(weight || "");
-    lines.push(bmi || "");
-    lines.push(bodyFat || "");
-    lines.push(muscle || "");
-    lines.push(steps || "");
+    // ===== 入力：文字数で次へ =====
+    function attachAutoNext(inputEl) {
+      inputEl.addEventListener("input", () => {
+        let value = inputEl.value;
 
-    const exerciseLines = [];
-    if (window.__manualRestMode) {
-      exerciseLines.push("運動なし");
-    } else {
-      exerciseLines.push(...selectedExercises);
+        if (["weight", "bmi", "bodyFat", "muscle"].includes(inputEl.id)) {
+          value = value.replace(/[^\d.]/g, "");
+          const parts = value.split(".");
+          if (parts.length > 2) value = parts[0] + "." + parts.slice(1).join("");
+          inputEl.value = value;
+        }
+
+        if (inputEl.id === "steps") {
+          value = value.replace(/[^\d]/g, "");
+          inputEl.value = value;
+        }
+
+        const need = Number(inputEl.dataset.autonext || 0);
+        const nextId = inputEl.dataset.next;
+        if (!need || !nextId) return;
+
+        if (inputEl.id === "steps") {
+          if (value.length >= 5) document.getElementById(nextId)?.focus();
+          return;
+        }
+
+        if (value.length >= need) document.getElementById(nextId)?.focus();
+      });
     }
 
-    if (exerciseExtra) {
-      const extras = exerciseExtra.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
-      exerciseLines.push(...extras);
+    ["weight", "bmi", "bodyFat", "muscle", "steps"].forEach(id => {
+      attachAutoNext(document.getElementById(id));
+    });
+
+    // ===== 文生成 =====
+    function buildText() {
+      const date = todayLabel.textContent.trim();
+      const weight = document.getElementById("weight").value.trim();
+      const bmi = document.getElementById("bmi").value.trim();
+      const bodyFat = document.getElementById("bodyFat").value.trim();
+      const muscle = document.getElementById("muscle").value.trim();
+      const steps = document.getElementById("steps").value.trim();
+      const eventText = document.getElementById("eventText").value.trim();
+      const exerciseExtra = document.getElementById("exerciseExtra").value.trim();
+
+      const selectedExercises = getMenuChecks()
+        .filter(cb => cb.checked)
+        .map(cb => cb.dataset.value);
+
+      const lines = [];
+      lines.push(date);
+      lines.push(weight || "");
+      lines.push(bmi || "");
+      lines.push(bodyFat || "");
+      lines.push(muscle || "");
+      lines.push(steps || "");
+
+      const exerciseLines = [];
+      if (window.__manualRestMode) {
+        exerciseLines.push("運動なし");
+      } else {
+        exerciseLines.push(...selectedExercises);
+      }
+
+      if (exerciseExtra) {
+        const extras = exerciseExtra.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        exerciseLines.push(...extras);
+      }
+
+      if (exerciseLines.length) lines.push(...exerciseLines);
+
+      if (eventText) {
+        lines.push("");
+        lines.push(`イベント：${eventText}`);
+      }
+
+      return lines.join("\n");
     }
 
-    if (exerciseLines.length) lines.push(...exerciseLines);
-
-    if (eventText) {
-      lines.push("");
-      lines.push(`イベント：${eventText}`);
-    }
-
-    return lines.join("\n");
-  }
-
-  document.getElementById("generateBtn").addEventListener("click", () => {
-    output.value = buildText();
-    copyStatus.textContent = "文を生成したよ";
-    copyStatus.className = "small statusOk";
-  });
-
-  document.getElementById("copyBtn").addEventListener("click", async () => {
-    if (!output.value.trim()) output.value = buildText();
-    try {
-      await navigator.clipboard.writeText(output.value);
-      copyStatus.textContent = "コピー完了";
+    document.getElementById("generateBtn").addEventListener("click", () => {
+      output.value = buildText();
+      copyStatus.textContent = "文を生成したよ";
       copyStatus.className = "small statusOk";
-    } catch {
-      output.focus(); output.select();
-      const ok = document.execCommand("copy");
-      copyStatus.textContent = ok ? "コピー完了（互換モード）" : "コピー失敗";
-      copyStatus.className = "small statusWarn";
-    }
-  });
-
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    ["weight","bmi","bodyFat","muscle","steps","eventText","exerciseExtra","output"].forEach(id => {
-      document.getElementById(id).value = "";
     });
-    copyStatus.textContent = "入力をクリアしたよ";
-    copyStatus.className = "small";
-    window.__manualRestMode = false;
-    renderMenuForToday();
-    document.getElementById("weight").focus();
-  });
 
-  // ===== メニュー編集 =====
-  function dayLabel(d) {
-    return ["日","月","火","水","木","金","土"][d];
-  }
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      if (!output.value.trim()) output.value = buildText();
+      try {
+        await navigator.clipboard.writeText(output.value);
+        copyStatus.textContent = "コピー完了";
+        copyStatus.className = "small statusOk";
+      } catch {
+        output.focus(); output.select();
+        const ok = document.execCommand("copy");
+        copyStatus.textContent = ok ? "コピー完了（互換モード）" : "コピー失敗";
+        copyStatus.className = "small statusWarn";
+      }
+    });
 
-  function loadEditorForDay(dayNum) {
-    const items = WEEK_MENU[dayNum] || [];
-    editMenuTextarea.value = items.join("\n");
-  }
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      ["weight","bmi","bodyFat","muscle","steps","eventText","exerciseExtra","output"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+      copyStatus.textContent = "入力をクリアしたよ";
+      copyStatus.className = "small";
+      window.__manualRestMode = false;
+      renderMenuForToday();
+      document.getElementById("weight").focus();
+    });
 
-  function applyEditorToDay(dayNum) {
-    const lines = editMenuTextarea.value
-      .split(/\r?\n/)
-      .map(s => s.trim())
-      .filter(Boolean);
-    WEEK_MENU[dayNum] = lines;
-  }
+    // ===== メニュー編集 =====
+    function dayLabel(d) {
+      return ["日","月","火","水","木","金","土"][d];
+    }
 
-  toggleEditorBtn.addEventListener("click", () => {
-    const open = menuEditor.style.display !== "none";
-    menuEditor.style.display = open ? "none" : "block";
-    toggleEditorBtn.textContent = open ? "編集を開く" : "編集を閉じる";
-    if (!open) loadEditorForDay(Number(editDaySelect.value));
-  });
+    function loadEditorForDay(dayNum) {
+      const items = WEEK_MENU[dayNum] || [];
+      editMenuTextarea.value = items.join("\n");
+    }
 
-  editDaySelect.addEventListener("change", () => {
-    loadEditorForDay(Number(editDaySelect.value));
-  });
+    function applyEditorToDay(dayNum) {
+      const lines = editMenuTextarea.value
+        .split(/\r?\n/)
+        .map(s => s.trim())
+        .filter(Boolean);
+      WEEK_MENU[dayNum] = lines;
+    }
 
-  saveMenuBtn.addEventListener("click", () => {
-    const d = Number(editDaySelect.value);
-    applyEditorToDay(d);
-    saveWeekMenu(WEEK_MENU);
+    toggleEditorBtn.addEventListener("click", () => {
+      const open = menuEditor.style.display !== "none";
+      menuEditor.style.display = open ? "none" : "block";
+      toggleEditorBtn.textContent = open ? "編集を開く" : "編集を閉じる";
+      if (!open) loadEditorForDay(Number(editDaySelect.value));
+    });
 
-    renderMenuForToday();
+    editDaySelect.addEventListener("change", () => {
+      loadEditorForDay(Number(editDaySelect.value));
+    });
 
-    copyStatus.textContent = `メニュー保存：${dayLabel(d)}曜`;
-    copyStatus.className = "small statusOk";
-  });
+    saveMenuBtn.addEventListener("click", () => {
+      const d = Number(editDaySelect.value);
+      applyEditorToDay(d);
+      saveWeekMenu(WEEK_MENU);
 
-  resetMenuBtn.addEventListener("click", () => {
-    WEEK_MENU = deepClone(DEFAULT_WEEK_MENU);
-    saveWeekMenu(WEEK_MENU);
+      renderMenuForToday();
 
-    loadEditorForDay(Number(editDaySelect.value));
-    renderMenuForToday();
+      copyStatus.textContent = `メニュー保存：${dayLabel(d)}曜`;
+      copyStatus.className = "small statusOk";
+    });
 
-    copyStatus.textContent = "メニューを初期に戻したよ";
-    copyStatus.className = "small statusOk";
-  });
+    resetMenuBtn.addEventListener("click", () => {
+      WEEK_MENU = deepClone(DEFAULT_WEEK_MENU);
+      saveWeekMenu(WEEK_MENU);
 
-  // ===== 初期化 =====
-  window.addEventListener("load", () => {
-    refreshDateUI();
-    loadEditorForDay(Number(editDaySelect.value));
-    document.getElementById("weight").focus();
-  });
-</script>
+      loadEditorForDay(Number(editDaySelect.value));
+      renderMenuForToday();
+
+      copyStatus.textContent = "メニューを初期に戻したよ";
+      copyStatus.className = "small statusOk";
+    });
+
+    // ===== 初期化 =====
+    window.addEventListener("load", () => {
+      refreshDateUI();
+      loadEditorForDay(Number(editDaySelect.value));
+      document.getElementById("weight").focus();
+    });
+  </script>
 </body>
 </html>
